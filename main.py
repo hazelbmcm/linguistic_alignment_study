@@ -335,6 +335,18 @@ def save_final_rating(participant_id, question_index, final_rating):
 def root():
     return FileResponse("static/index.html")
 
+#temporary
+@app.get("/debug/sessions")
+def debug_sessions():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM question_sessions")
+    rows = cursor.fetchall()
+    conn.close()
+
+    return {"sessions": rows}
+
 @app.get("/start-experiment/{participant_id}")
 def first_question(participant_id):
     progress[participant_id] = 0
