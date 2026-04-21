@@ -16,6 +16,8 @@ from fastapi.responses import FileResponse
 load_dotenv()
 
 DB_PATH = os.getenv("DB_PATH", "experiment.db")
+RESPONSES_PATH = os.getenv("RESPONSES_PATH", "data/responses.jsonl")
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -223,8 +225,10 @@ class EndConversation(BaseModel):
 
 
 def save_record(record: dict) -> None:
-    os.makedirs("data", exist_ok=True)
-    with open("data/responses.jsonl", "a", encoding="utf-8") as f:
+    directory = os.path.dirname(RESPONSES_PATH)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(RESPONSES_PATH, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 def create_conversation_entry(participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, user_text, ai_reply):
