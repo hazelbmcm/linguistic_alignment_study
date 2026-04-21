@@ -173,7 +173,7 @@
 
         function question() {
         
-            fetch(`http://127.0.0.1:8000/start-experiment/${participantID}`)
+            fetch(`/start-experiment/${participantID}`)
                 .then(res => res.json())
                 .then(data => {
                     console.log(data)
@@ -215,7 +215,7 @@
                 return
             }
 
-            fetch("http://127.0.0.1:8000/submit-answer", {
+            fetch("/submit-answer", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -253,7 +253,7 @@
                 return
             }
 
-            fetch("http://127.0.0.1:8000/continue-conversation", {
+            fetch("/continue-conversation", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -291,7 +291,7 @@
                 alert("Please select a rating.")
                 return
             }
-            fetch("http://127.0.0.1:8000/end-conversation", {
+            fetch("/end-conversation", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
