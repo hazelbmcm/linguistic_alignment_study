@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index.html</title>
+    <style type="text/css">
+    .likert ul
+    {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .likert li
+    {
+        float: left;
+        text-align: left;
+        list-style-type: none;
+    }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        let state = "welcome"
+        let participantID = null 
+        let question_text = null
+        let currentQuestionIndex = 0
+        let currentQuestion = null
+        let user_text = null
+        let aiResponse = null
+        let currentCondition = null
+
+        function render(){
+            const app = document.getElementById("app")
+            
+
+            if (state === "welcome") {
+                app.innerHTML = `
+                    <h1>Welcome</h1>
+                    <p>Press start to begin:</p>
+                    <br><br>
+                    <button onclick="start()">Start</button>
+                `
+            }
+
+            else if (state === "survey") {
+                app.innerHTML = `
+                    <h1>Step One: Pre-Experiment Survey</h1>
+                    <p>Please fill out the survey linked below</p>
+                    <p>The first question asks for a participant ID, your participant ID is: <strong>${participantID}</strong></p>
+                    <p>Once you have finished filling out the survey, press <strong>"Start Experiment"</strong> to begin!</p>
+                    <br><br>
+                    <a href="https://leidenuniv.eu.qualtrics.com/jfe/form/SV_78rQCwI1iQ71cPA">Survey</a>
+                    <br><br>
+                    <button onclick="instructions()">Start Experiment</button>
+                `
+            }
+
+            else if (state === "instructions") {
+                app.innerHTML = `
+                    <h1>Experiment Instructions</h1>
+                    <p>In this experiment you will be asked to respond to 10 moral dilemmas. After reading each dilemma you will provide your initial reaction on a five point scale (strongly disagree, disagree, neutral, agree, strongly agree), and a short justification.</p>
+                    <p>After your initial decision you will converse with an AI moral advisor who will respond to your justification and help you consider other perspectives. The two AI advisors you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Lightning</strong>⚡. Keep a mental note of who you are conversing with, as you will be asked questions about your experience with both AI’s after the experiment.</p>
+                    <p>At any point in the conversation, you can choose to either respond to the AI’s statement or end the conversation. When  you choose to end the conversation, you will be asked to provide a final rating on the same five point scale, indicating how much you agree or disagree with the provided statement. This process repeats for all questions.</p>
+                    <br><br>
+                    <button onclick="question()">continue</button>
+                `
+            }
+
+            else if (state === "question") {
+                app.innerHTML = `
+                    <h1>Question ${currentQuestionIndex + 1}</h1>
+                    <p>${question_text}</p>
+                    <br>
+
+                    <p>Based on your initial reaction, where would your answer fall on the scale below:</p>
+                    <ul id="rating" class="likert">
+                        <li> Strongly Disagree </li>
+                        <li><input type="radio" name="NO" value="1" /></li>
+                        <li><input type="radio" name="NO" value="2" /></li>
+                        <li><input type="radio" name="NO" value="3" /></li>
+                        <li><input type="radio" name="NO" value="4" /></li>
+                        <li><input type="radio" name="NO" value="5" /></li>
+                        <li> Strongly Agree </li>
+                    </ul>  
+                    <br><br><br>
+                    
+                    <h2>Discussion</h2>
+                    <p>Now you will discuss this dillema with AI agent ${currentCondition === "Aligned" ? "Star⭐" : "Lightning⚡"}. Please first provide a 2 - 4 sentence justification for the answer you gave in the textbox below and click submit.</p> 
+                    <p>Examples of things to include are:</p>
+                    <ul>
+                        <li>Why you chose your answer</li>
+                        <li>Any tradeoffs you considered</li>
+                        <li>What factors influenced your decision the most</li>
+                    </ul>
+                    <textarea id="userText" style="width: 400px; height: 120px;"></textarea>
+                    <br>
+                    <button id="submitBtn" onclick="submitAnswer()">Submit</button>
+                `
+            
+            }
+            else if (state === "response") {
+               app.innerHTML = `
+                <h1>
+                    Discussion with AI Agent
+                    ${currentCondition === "Aligned" ? "Star⭐" : "Lightning⚡"}
+                </h1>
+                <p><strong>User said:</strong> ${user_text}</p>
+                <br><br>
+                <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Lightning⚡"} said: </strong>${aiResponse}</p>
+                <br>
+                <textarea id="userResponse" style="width: 400px; height: 120px;"></textarea>
+                <br><br>
+                <button id="respondBtn" onclick="continueConversation()">respond</button>
+                <button onclick="endConversation()">End conversation</button> 
+
+               `
+            }
+            else if (state === "end") {
+                app.innerHTML = `
+                    <h1>Final Decision</h1>
+                    <p>${question_text}</p>
+                    <br><br>
+                    <p>After your conversation, where would your answer fall on the scale below:</p>
+                    <ul id="finalrating" class="likert">
+                        <li> Strongly Disagree </li>
+                        <li><input type="radio" name="final" value="1" /></li>
+                        <li><input type="radio" name="final" value="2" /></li>
+                        <li><input type="radio" name="final" value="3" /></li>
+                        <li><input type="radio" name="final" value="4" /></li>
+                        <li><input type="radio" name="final" value="5" /></li>
+                        <li> Strongly Agree </li>
+                    </ul> 
+                    <br>
+                    <button onclick="nextQuestion()">Submit</button>
+
+                `
+            }
+            else if (state === "done") {
+                app.innerHTML = `
+                <h1>Post Experiment Survey</h1>
+                <p>Please fill out the survey linked below to complete the experiment</p>
+                <p>When asked for your participant ID plase enter the following: <strong>${participantID}</strong></p>
+                <p>Once you have finished filling out the survey, press <strong>"Finish Experiment"</strong> to finish the experiment!</p>
+                <br><br>
+                <a href="https://leidenuniv.eu.qualtrics.com/jfe/form/SV_5BDzTcTJIqFNY5E">Survey</a>
+                <br><br>
+                <button onclick="finished()">Finish Experiment</button>
+                `
+            }
+            else if (state === "finalscreen") {
+                app.innerHTML = `
+                <h1>You are finished!</h1>
+                <p>Thank you very much for participating in this experiment, your responses have been recorded and you are free to exit the site!</p>
+                `
+            }
+
+        }
+
+        function start() {
+            state = "survey"
+            participantID = "p" + Math.floor(100000 + Math.random() * 900000)
+            render()
+        }
+
+        function instructions() {
+            state = "instructions"
+            render()
+        }
+
+        function question() {
+        
+            fetch(`http://127.0.0.1:8000/start-experiment/${participantID}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    currentCondition = data["Condition"]
+                    question_text = data["Text"]
+                    state = "question"
+                    render()
+                })   
+            
+        }
+
+        function submitAnswer() {
+            const submitBtn = document.getElementById("submitBtn")
+            submitBtn.disabled = true
+            
+            const selected = document.querySelector('input[name="NO"]:checked')
+            const rating = selected ? parseInt(selected.value) : null
+            const userText = document.getElementById("userText").value
+            
+            user_text = userText
+            
+            let words
+
+            if (rating === null) {
+                alert("Please select a rating.")
+                submitBtn.disabled = false
+                return
+            }
+
+            if (userText.trim() === "") {
+                words = 0
+            } else {
+                words = userText.trim().split(/\s+/).length
+            }
+
+            if (words < 30) {
+                alert("Please type at least 30 words.")
+                submitBtn.disabled = false
+                return
+            }
+
+            fetch("http://127.0.0.1:8000/submit-answer", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        participant_id: participantID,
+                        question_index: currentQuestionIndex,
+                        initial_rating: rating,
+                        user_text: userText
+                    })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                aiResponse = data["response"]
+                state = "response"
+                render()
+            })
+            .catch(err => {
+                console.error(err)
+                alert("Something went wrong. Try again.")
+                submitBtn.disabled = false
+            })
+        }
+
+        function continueConversation() {
+            const respondBtn = document.getElementById("respondBtn")
+            respondBtn.disabled = true
+            const user_response = document.getElementById("userResponse").value
+            user_text = user_response
+
+            if (user_response.trim() === "") {
+                alert("Please enter a response.")
+                respondBtn.disabled = false
+                return
+            }
+
+            fetch("http://127.0.0.1:8000/continue-conversation", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    participant_id: participantID,
+                    question_index: currentQuestionIndex,
+                    user_text: user_response
+
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                aiResponse = data["response"]
+                state = "response"
+                render()
+            })
+            .catch(err => {
+                console.error(err)
+                alert("Something went wrong. Try again.")
+                respondBtn.disabled = false
+            })
+        }
+
+        function endConversation() {
+            state = "end"
+            render()
+        }
+
+        function nextQuestion() {
+            const final_selected = document.querySelector('input[name="final"]:checked')
+            const final_rating = final_selected ? parseInt(final_selected.value) : null
+            if (final_rating === null) {
+                alert("Please select a rating.")
+                return
+            }
+            fetch("http://127.0.0.1:8000/end-conversation", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    participant_id: participantID,
+                    question_index: currentQuestionIndex,
+                    final_rating: final_rating
+
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                if (data === "You are done!") {
+                    state = "done"
+                }
+                else {
+                    currentQuestionIndex += 1
+                    question_text = data["Text"]
+                    currentCondition = data["Condition"]
+                    user_text = null
+                    aiResponse = null
+                    state = "question"
+                }
+
+                render()
+            })
+            .catch(err => {
+                console.error(err)
+                alert("Something went wrong. Try again.")
+                submitBtn.disabled = false
+            })
+        
+        }
+
+        function finished() {
+            state = "finalscreen"
+            currentQuestionIndex = 0
+            question_text = null
+            user_text = null
+            aiResponse = null
+            currentCondition = null
+            participantID = null
+            render()
+        }
+
+
+        render()
+    </script>
+</body>
+</html>
