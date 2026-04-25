@@ -19,6 +19,7 @@ from fastapi.responses import FileResponse
 load_dotenv()
 
 DB_PATH = os.getenv("DB_PATH", "experiment.db")
+EXPORT_KEY = os.getenv("EXPORT_KEY")
 RESPONSES_PATH = os.getenv("RESPONSES_PATH", "data/responses.jsonl")
 
 def init_db():
@@ -351,18 +352,6 @@ def save_final_rating(participant_id, question_index, final_rating):
 def root():
     return FileResponse("static/index.html")
 
-#temporary
-@app.get("/debug/sessions")
-def debug_sessions():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM question_sessions")
-    rows = cursor.fetchall()
-    conn.close()
-
-    return {"sessions": rows}
-
 @app.get("/new-participant")
 def new_participant():
     pid = generate_pid()
@@ -486,7 +475,10 @@ def end_conversation(req: EndConversation):
         return "You are done!"
 
 @app.get("/export/sessions")
-def export_sessions():
+def export_sessions(key: str):
+    if key != EXPORT_KEY:
+        return {"error": "unauthorized"}
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -510,7 +502,10 @@ def export_sessions():
     )
 
 @app.get("/export/messages")
-def export_messages():
+def export_messages(key: str):
+    if key != EXPORT_KEY:
+        return {"error": "unauthorized"}
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
