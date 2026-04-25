@@ -122,6 +122,7 @@ def get_first_question(PID):
         if item["ID"] == assignment["ID"]:
             found = True
             target_text = item["Text"]
+            target_title = item["Title"]
             break
     
     if not found:
@@ -129,6 +130,7 @@ def get_first_question(PID):
 
     return {
         "ID" : target_id,
+        "Title" : target_title,
         "Condition" : target_condition,
         "Text" : target_text
     }
@@ -144,6 +146,7 @@ def get_nth_question(PID, n):
         if item["ID"] == assignment["ID"]:
             found = True
             target_text = item["Text"]
+            target_title = item["Title"]
             break
     
     if not found:
@@ -151,6 +154,7 @@ def get_nth_question(PID, n):
 
     return {
         "ID" : target_id,
+        "Title" : target_title,
         "Condition" : target_condition,
         "Text" : target_text
     }

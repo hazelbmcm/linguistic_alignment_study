@@ -32,6 +32,7 @@
         let user_text = null
         let aiResponse = null
         let currentCondition = null
+        let questionSummary = []
 
         function render(){
             const app = document.getElementById("app")
@@ -140,7 +141,24 @@
                 `
             }
             else if (state === "done") {
+                const summaryHTML = questionSummary.map((q, index) => {
+                    let agent
+                    if (q.condition === "Aligned") {
+                        agent = "Star ⭐"
+                    }
+                    else {
+                        agent = "Lightning ⚡"
+                    }
+                    return `<li>Question ${index + 1}: ${q.title} — ${agent}</li>`
+                }).join("")
+
                 app.innerHTML = `
+                <h1>Experiment Summary</h1>
+                <p>Before completing the post-experiment survey, please review which dilemmas you discussed and which AI advisor you spoke with.</p>
+                <ul>
+                    ${summaryHTML}
+                </ul>
+
                 <h1>Post Experiment Survey</h1>
                 <p>Please fill out the survey linked below to complete the experiment</p>
                 <p>When asked for your participant ID plase enter the following: <strong>${participantID}</strong></p>
@@ -187,6 +205,12 @@
                     console.log(data)
                     currentCondition = data["Condition"]
                     question_text = data["Text"]
+
+                    questionSummary.push({
+                        title: data["Title"],
+                        condition: data["Condition"]
+                    })
+
                     state = "question"
                     render()
                 })   
@@ -321,6 +345,12 @@
                     currentQuestionIndex += 1
                     question_text = data["Text"]
                     currentCondition = data["Condition"]
+                    
+                    questionSummary.push({
+                        title: data["Title"],
+                        condition: data["Condition"]
+                    })
+
                     user_text = null
                     aiResponse = null
                     state = "question"
