@@ -1,11 +1,14 @@
 from openai import OpenAI
 import os 
+import io
+import csv
 import json
 import random
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import random
 import sqlite3
@@ -482,3 +485,50 @@ def end_conversation(req: EndConversation):
     else:
         return "You are done!"
 
+@app.get("/export/sessions")
+def export_sessions():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM question_sessions")
+    rows = cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]
+
+    conn.close()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(columns)
+    writer.writerows(rows)
+
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=sessions.csv"}
+    )
+
+@app.get("/export/messages")
+def export_messages():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM messages")
+    rows=cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]
+
+    conn.close()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(columns)
+    writer.writerows(rows)
+
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=messages.csv"}
+    )
