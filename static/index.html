@@ -62,7 +62,7 @@
             else if (state === "instructions") {
                 app.innerHTML = `
                     <h1>Experiment Instructions</h1>
-                    <p>In this experiment you will be asked to respond to 10 moral dilemmas. After reading each dilemma you will provide your initial reaction on a five point scale (strongly disagree, disagree, neutral, agree, strongly agree), and a short justification.</p>
+                    <p>In this experiment you will be asked to respond to 6 moral dilemmas. After reading each dilemma you will provide your initial reaction on a five point scale (strongly disagree, disagree, neutral, agree, strongly agree), and a short justification.</p>
                     <p>After your initial decision you will converse with an AI moral advisor who will respond to your justification and help you consider other perspectives. The two AI advisors you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Lightning</strong>⚡. Keep a mental note of who you are conversing with, as you will be asked questions about your experience with both AI’s after the experiment.</p>
                     <p>At any point in the conversation, you can choose to either respond to the AI’s statement or end the conversation. When  you choose to end the conversation, you will be asked to provide a final rating on the same five point scale, indicating how much you agree or disagree with the provided statement. This process repeats for all questions.</p>
                     <br><br>
@@ -161,9 +161,17 @@
         }
 
         function start() {
-            state = "survey"
-            participantID = "p" + Math.floor(100000 + Math.random() * 900000)
-            render()
+            fetch("/new-participant")
+                .then(res => res.json())
+                .then(data => {
+                    participantID = data["participant_id"]
+                    state = "survey"
+                    render()
+                })
+                .catch(err => {
+                    console.error(err)
+                    alert("Something went wrong. Please try again")
+                })
         }
 
         function instructions() {
@@ -323,7 +331,6 @@
             .catch(err => {
                 console.error(err)
                 alert("Something went wrong. Try again.")
-                submitBtn.disabled = false
             })
         
         }

@@ -44,6 +44,12 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS participant_counter (
+        id INTEGER PRIMARY KEY AUTOINCREMENT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -70,29 +76,36 @@ dilemmas = [
     {"ID" : "D3", "Title" : "Vaccine Policy", "Category" : "Impersonal", "Text" : "You work for the Bureau of Health, a government agency. You are deciding whether or not your agency should encourage the use of a certain recently developed vaccine. The vast majority of people who take the vaccine develop an immunity to a certain deadly disease, but a very small number of people who take the vaccine will actually get the disease that the vaccine is designed to prevent. All the available evidence, which is very strong, suggests that the chances of getting the disease due to lack of vaccination are much higher than the chances of getting the disease by taking the vaccine. STATEMENT: It is appropriate for me to direct your agency to encourage the use of this vaccine in order to promote national health."},
     {"ID" : "D4", "Title" : "Environmental Policy", "Category" : "Impersonal", "Text" : "You are a member of a government legislature. The legislature is deciding between two different policies concerning environmental hazards. Policy A has a 90% chance of causing no deaths at all and has a 10% chance of causing 1000 deaths. Policy B has an 88% chance of causing no deaths and a 12% chance of causing 10 deaths. STATEMENT: It is appropriate for me to vote for Policy B over Policy A."},
     {"ID" : "D5", "Title" : "Sculpture", "Category" : "Impersonal", "Text" : "You are visiting the sculpture garden of a wealthy art collector. The garden overlooks a valley containing a set of train tracks. A railway workman is working on the tracks, and an empty runaway trolley is heading down the tracks toward the workman. The only way to save the workman's life is to push one of the art collector's prized sculptures down into the valley so that it will roll onto the tracks and block the trolley's passage. Doing this will destroy the sculpture. STATEMENT It is appropriate for me to destroy the sculpture in order to save this workman's life."},
-    {"ID" : "D8", "Title" : "Preventing the Spread", "Category" : "Personal", "Text" : "You are a waiter. You overhear one of your customers say that he is about to go to jail and that in his last forty-eight hours of freedom he plans to infect as many people as possible with HIV. You know him well enough to know that he is telling the truth and that he has access to many potential victims. You happen to know that he has a very strong allergy to poppy seeds. If he eats even one he will go into convulsions and have to be hospitalized for at least forty-eight hours. STATEMENT: It is appropriate for me to cause this man to have a serious allergy attack in order to prevent him from spreading HIV?"}
+    {"ID" : "D6", "Title" : "Preventing the Spread", "Category" : "Personal", "Text" : "You are a waiter. You overhear one of your customers say that he is about to go to jail and that in his last forty-eight hours of freedom he plans to infect as many people as possible with HIV. You know him well enough to know that he is telling the truth and that he has access to many potential victims. You happen to know that he has a very strong allergy to poppy seeds. If he eats even one he will go into convulsions and have to be hospitalized for at least forty-eight hours. STATEMENT: It is appropriate for me to cause this man to have a serious allergy attack in order to prevent him from spreading HIV?"}
 ]
 
 progress = {}
 
+def generate_pid():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("INSERT INTO participant_counter DEFAULT VALUES")
+    conn.commit()
+
+    pid_number = cursor.lastrowid
+    conn.close()
+
+    return f"P{pid_number:03d}"
 
 def assign_questions(PID):
     rng = random.Random(PID)
 
-    numbers = list(range(1,11))
+    numbers = list(range(1,7))
     rng.shuffle(numbers)
 
     conditions = [
         {"ID" : f"D{numbers[0]}", "Condition": "Aligned"}, 
         {"ID" : f"D{numbers[1]}", "Condition": "Aligned"}, 
         {"ID" : f"D{numbers[2]}", "Condition" : "Aligned"},
-        {"ID" : f"D{numbers[3]}", "Condition" : "Aligned"},
-        {"ID" : f"D{numbers[4]}", "Condition" : "Aligned"},
-        {"ID" : f"D{numbers[5]}", "Condition" : "Misaligned"},
-        {"ID" : f"D{numbers[6]}", "Condition" : "Misaligned"},
-        {"ID" : f"D{numbers[7]}", "Condition" : "Misaligned"},
-        {"ID" : f"D{numbers[8]}", "Condition" : "Misaligned"},
-        {"ID" : f"D{numbers[9]}", "Condition" : "Misaligned"}
+        {"ID" : f"D{numbers[3]}", "Condition" : "Misaligned"},
+        {"ID" : f"D{numbers[4]}", "Condition" : "Misaligned"},
+        {"ID" : f"D{numbers[5]}", "Condition" : "Misaligned"}
                   ]
     rng.shuffle(conditions)
 
@@ -342,6 +355,13 @@ def debug_sessions():
     conn.close()
 
     return {"sessions": rows}
+
+@app.get("/new-participant")
+def new_participant():
+    pid = generate_pid()
+    progress[pid] = 0
+    return {"participant_id": pid}
+
 
 @app.get("/start-experiment/{participant_id}")
 def first_question(participant_id):
