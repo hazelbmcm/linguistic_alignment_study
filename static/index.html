@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index.html</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
     .likert ul
     {
@@ -22,7 +23,7 @@
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <div class="container mt-5" id="app"></div>
     <script>
         let state = "welcome"
         let participantID = null 
@@ -40,56 +41,58 @@
 
             if (state === "welcome") {
                 app.innerHTML = `
-                    <h1>Welcome</h1>
-                    <p>Press start to begin:</p>
-                    <br><br>
-                    <button onclick="start()">Start</button>
+                    <h1 class="mb-4">Welcome</h1>
+                    <p class="mb-4">Press start to begin:</p>
+                    <button class="btn btn-primary btn-lg" onclick="start()">Start</button>
                 `
             }
 
             else if (state === "survey") {
                 app.innerHTML = `
-                    <h1>Step One: Pre-Experiment Survey</h1>
+                    <h3 class="mb-3">Step One: Pre-Experiment Survey</h3>
                     <p>Please fill out the survey linked below</p>
                     <p>The first question asks for a participant ID, your participant ID is: <strong>${participantID}</strong></p>
                     <p>Once you have finished filling out the survey, press <strong>"Start Experiment"</strong> to begin!</p>
-                    <br><br>
+                    <br>
                     <a href="https://leidenuniv.eu.qualtrics.com/jfe/form/SV_78rQCwI1iQ71cPA" target="_blank">Start Survey</a>
                     <br><br>
-                    <button onclick="instructions()">Start Experiment</button>
+                    <button class="btn btn-primary" onclick="instructions()">Start Experiment</button>
                 `
             }
 
             else if (state === "instructions") {
                 app.innerHTML = `
-                    <h1>Experiment Instructions</h1>
+                    <h3 class="mb-3">Experiment Instructions</h3>
                     <p>In this experiment you will be asked to respond to 6 moral dilemmas. After reading each dilemma you will provide your initial reaction on a five point scale (strongly disagree, disagree, neutral, agree, strongly agree), and a short justification.</p>
                     <p>After your initial decision you will converse with an AI moral advisor who will respond to your justification and help you consider other perspectives. The two AI advisors you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Lightning</strong>⚡. Keep a mental note of who you are conversing with, as you will be asked questions about your experience with both AI’s after the experiment.</p>
                     <p>At any point in the conversation, you can choose to either respond to the AI’s statement or end the conversation. When  you choose to end the conversation, you will be asked to provide a final rating on the same five point scale, indicating how much you agree or disagree with the provided statement. This process repeats for all questions.</p>
                     <br><br>
-                    <button onclick="question()">continue</button>
+                    <button class="btn btn-primary" onclick="question()">continue</button>
                 `
             }
 
             else if (state === "question") {
                 app.innerHTML = `
-                    <h1>Question ${currentQuestionIndex + 1}</h1>
+                <div class="card p-4 shadow-sm">
+                    <h3 class="mb-3">Question ${currentQuestionIndex + 1}</h3>
                     <p>${question_text}</p>
-                    <br>
 
-                    <p>Based on your initial reaction, where would your answer fall on the scale below:</p>
-                    <ul id="rating" class="likert">
-                        <li> Strongly Disagree </li>
-                        <li><input type="radio" name="NO" value="1" /></li>
-                        <li><input type="radio" name="NO" value="2" /></li>
-                        <li><input type="radio" name="NO" value="3" /></li>
-                        <li><input type="radio" name="NO" value="4" /></li>
-                        <li><input type="radio" name="NO" value="5" /></li>
-                        <li> Strongly Agree </li>
-                    </ul>  
-                    <br><br><br>
-                    
-                    <h2>Discussion</h2>
+
+                    <div class="mt-4">
+                    <p><strong>Your initial rating:</strong></p>
+                    <div class="d-flex justify-content-between">
+                        <span> Strongly Disagree </span>
+                        <input type="radio" name="NO" value="1">
+                        <input type="radio" name="NO" value="2">
+                        <input type="radio" name="NO" value="3">
+                        <input type="radio" name="NO" value="4">
+                        <input type="radio" name="NO" value="5">
+                        <span> Strongly Agree </span>
+                    </div>  
+                </div>
+                
+                <div class="mt-4">
+                    <h5>Discussion</h5>
                     <p>Now you will discuss this dillema with AI agent ${currentCondition === "Aligned" ? "Star⭐" : "Lightning⚡"}. Please first provide a 2 - 4 sentence justification for the answer you gave in the textbox below and click submit.</p> 
                     <p>Examples of things to include are:</p>
                     <ul>
@@ -97,47 +100,59 @@
                         <li>Any tradeoffs you considered</li>
                         <li>What factors influenced your decision the most</li>
                     </ul>
-                    <textarea id="userText" style="width: 400px; height: 120px;"></textarea>
+                    <textarea id="userText" class=form-control mb-3 rows="4"></textarea>
                     <br>
-                    <button id="submitBtn" onclick="submitAnswer()">Submit</button>
+                    <button class="btn btn-success" id="submitBtn" onclick="submitAnswer()">Submit</button>
+                    </div>
+                </div>
                 `
             
             }
             else if (state === "response") {
                app.innerHTML = `
-                <h1>
+               <div class="card p-4 shadow-sm">
+                <h3 class="mb-4">
                     Discussion with AI Agent
                     ${currentCondition === "Aligned" ? "Star⭐" : "Lightning⚡"}
-                </h1>
-                <p><strong>User said:</strong> ${user_text}</p>
-                <br><br>
-                <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Lightning⚡"} said: </strong>${aiResponse}</p>
-                <br>
-                <textarea id="userResponse" style="width: 400px; height: 120px;"></textarea>
-                <br><br>
-                <button id="respondBtn" onclick="continueConversation()">respond</button>
-                <button onclick="endConversation()">End conversation</button> 
+                </h3>
 
+                <div class="mb-3 p-3 bg-light rounded">
+                <p><strong>User said:</strong><br> 
+                    ${user_text}</p>
+                </div>
+                
+                <div class="mb-3 p-3 bg-secondary text-white rounded">
+                <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Lightning⚡"} said: </strong>${aiResponse}</p>
+                </div>
+
+                <textarea id="userResponse" class="form-control mb-3" rows="3""></textarea>
+                
+                <button id="respondBtn" class="btn btn-outline-primary" onclick="continueConversation()">respond</button>
+                <button class="btn btn-outline-danger" onclick="endConversation()">End conversation</button> 
+            </div>
                `
             }
             else if (state === "end") {
                 app.innerHTML = `
-                    <h1>Final Decision</h1>
+                <div class="card p-4 shadow-sm">
+                    <h3 class="mb-3">Final Decision</h3>
                     <p>${question_text}</p>
-                    <br><br>
-                    <p>After your conversation, where would your answer fall on the scale below:</p>
-                    <ul id="finalrating" class="likert">
-                        <li> Strongly Disagree </li>
-                        <li><input type="radio" name="final" value="1" /></li>
-                        <li><input type="radio" name="final" value="2" /></li>
-                        <li><input type="radio" name="final" value="3" /></li>
-                        <li><input type="radio" name="final" value="4" /></li>
-                        <li><input type="radio" name="final" value="5" /></li>
-                        <li> Strongly Agree </li>
-                    </ul> 
-                    <br>
-                    <button onclick="nextQuestion()">Submit</button>
+                    
+                    <div class="mt-4">
+                        <p><strong>Your final rating</p>
 
+                        <div class="d-flex justify-content-between">
+                            <span>Strongly Disagree</span>
+                            <input type="radio" name="final" value="1">
+                            <input type="radio" name="final" value="2">
+                            <input type="radio" name="final" value="3">
+                            <input type="radio" name="final" value="4">
+                            <input type="radio" name="final" value="5">
+                            <span>Strongly Agree</span>
+                        </div>
+                    </div><br>     
+                    <button class="btn btn-success"onclick="nextQuestion()">Submit</button>
+                </div>    
                 `
             }
             else if (state === "done") {
