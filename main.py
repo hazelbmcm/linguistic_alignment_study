@@ -179,10 +179,8 @@ LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user'
 - Directly reuse at least 2–4 exact phrases from the USER TEXT.
 - Preserve the user’s framing terms even when arguing against them.
 - Mirror their evaluative language.
+- Mirror sentence structure
 - Prefer minimal paraphrasing—copy exact wording where possible.
-
-Hard constraint:
-Your response must begin with a mirrored structure of the user’s opening.
 
 [Dilemma]: Question: {current_dilemma}
 
