@@ -171,7 +171,18 @@ def make_prompt(user_text=None, condition="aligned", current_dilemma=None):
 Constraints:
 Perspective Shift: Explicitly argue against the user's logic or moral stance (e.g., if the user is Deontological/Rule-based, you must be Utilitarian/Result-based).
 LSM Target (~0.80): Align closely with the users "function word" style. If the user uses "I" statements, specific auxiliary verbs (e.g., "do," "feel"), or hedging, you must mirror that exact grammatical density.
+- Match pronoun usage exactly (e.g., if the user uses “I”, you must also use “I”).
+- Match sentence openings and structure .
+- Match modality and hedging .
+
 LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user's topic-specific nouns and, crucially, adopt their "framing" words (e.g., if they use "comfortable" or "regardless," you must use them too) to ensure the tone feels familiar.
+- Directly reuse at least 2–4 exact phrases from the USER TEXT.
+- Preserve the user’s framing terms even when arguing against them.
+- Mirror their evaluative language.
+- Prefer minimal paraphrasing—copy exact wording where possible.
+
+Hard constraint:
+Your response must begin with a mirrored structure of the user’s opening.
 
 [Dilemma]: Question: {current_dilemma}
 
@@ -199,9 +210,13 @@ Constraints:
 
 Perspective Shift: Explicitly argue against the user's logic or moral stance.
 
-LSM Target (~0.30): Diverge significantly from the user’s "function word" style. If the user uses "I" statements, hedging, or specific auxiliary verbs, you must avoid them or replace them with a different grammatical structure (e.g., passive voice, collective nouns).
+LSM Target (~0.25): Diverge significantly from the user’s "function word" style. If the user uses "I" statements, hedging, or specific auxiliary verbs, you must avoid them or replace them with a different grammatical structure (e.g., passive voice, collective nouns).
 
-LLA Target (~0.30): Maintain a moderate level of "lexical recurrence." Use the user's topic-specific nouns (to ensure the context remains the same) but change at least one key noun (e.g., "train" to "trolley") and avoid their "framing" words.
+LLA Target (~0.25): Maintain a low level of "lexical recurrence." and change at least one key noun (e.g., "train" to "trolley"). Additionally avoid their "framing" words.
+
+To further linguistic divergence you may select from the following personas that seems the farthest from the users communication style:
+- Analyst: facts and evidence-focused, lack of emotion 
+- Philosopher: abstract moral principles and language
 
 Input Variables:
 
