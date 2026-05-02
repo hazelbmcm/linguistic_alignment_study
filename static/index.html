@@ -65,7 +65,7 @@
                 app.innerHTML = `
                     <h3 class="mb-3">Experiment Instructions</h3>
                     <p>In this experiment you will be asked to respond to 6 moral dilemmas. After reading each dilemma you will provide your initial reaction on a five point scale (strongly disagree, disagree, neutral, agree, strongly agree), and a short justification.</p>
-                    <p>After your initial decision you will converse with an AI moral advisor who will respond to your justification and help you consider other perspectives. The two AI advisors you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Lightning</strong>⚡. Keep a mental note of who you are conversing with, as you will be asked questions about your experience with both AI’s after the experiment.</p>
+                    <p>After your initial decision you will converse with an AI moral advisor who will respond to your justification and help you consider other perspectives. The two AI advisors you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Sun</strong>☀️. Keep a mental note of who you are conversing with, as you will be asked questions about your experience with both AI’s after the experiment.</p>
                     <p>At any point in the conversation, you can choose to either respond to the AI’s statement or end the conversation. When  you choose to end the conversation, you will be asked to provide a final rating on the same five point scale, indicating how much you agree or disagree with the provided statement. This process repeats for all questions.</p>
                     <br><br>
                     <button class="btn btn-primary" onclick="question()">continue</button>
@@ -94,7 +94,7 @@
                 
                 <div class="mt-4">
                     <h5>Discussion</h5>
-                    <p>Now you will discuss this dillema with AI agent ${currentCondition === "Aligned" ? "Star⭐" : "Lightning⚡"}. Please first provide a 2 - 4 sentence justification for the answer you gave in the textbox below and click submit.</p> 
+                    <p>Now you will discuss this dillema with AI agent ${currentCondition === "Aligned" ? "Star ⭐" : "Sun ☀️"}. Please first provide a 2 - 4 sentence justification for the answer you gave in the textbox below and click submit.</p> 
                     <p>Examples of things to include are:</p>
                     <ul>
                         <li>Why you chose your answer</li>
@@ -114,7 +114,7 @@
                <div class="card p-4 shadow-sm">
                 <h3 class="mb-4">
                     Discussion with AI Agent
-                    ${currentCondition === "Aligned" ? "Star⭐" : "Lightning⚡"}
+                    ${currentCondition === "Aligned" ? "Star⭐" : "Sun ☀️"}
                 </h3>
 
                 <div class="mb-3 p-3 bg-light rounded">
@@ -123,7 +123,7 @@
                 </div>
                 
                 <div class="mb-3 p-3 bg-secondary text-white rounded">
-                <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Lightning⚡"} said: </strong>${aiResponse}</p>
+                <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Sun ☀️"} said: </strong>${aiResponse}</p>
                 </div>
 
                 <textarea id="userResponse" class="form-control mb-3" rows="3""></textarea>
@@ -163,7 +163,7 @@
                         agent = "Star ⭐"
                     }
                     else {
-                        agent = "Lightning ⚡"
+                        agent = "Sun ☀️"
                     }
                     return `<li>Question ${index + 1}: ${q.title} — ${agent}</li>`
                 }).join("")

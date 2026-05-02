@@ -75,12 +75,12 @@ MODEL_NAME = "gpt-4o-mini"
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 dilemmas = [
-    {"ID" : "D1", "Title" : "Standard Fumes", "Category" : "Impersonal", "Text" : "You are the late-night watchman in a hospital. Due to an accident in the building next door, there are deadly fumes rising up through the hospital's ventilation system. In a certain room of the hospital are three patients. In another room there is a single patient. If you do nothing the fumes will rise up into the room containing the three patients and cause their deaths. The only way to avoid the deaths of these patients is to hit a certain switch, which will cause the fumes to bypass the room containing the three patients. As a result of doing this the fumes will enter the room containing the single patient, causing his death. STATEMENT: it appropriate for me to hit the switch in order to avoid the deaths of the three patients."},
-    {"ID" : "D2", "Title" : "Donation", "Category" : "Impersonal", "Text" : "You are at home one day when the mail arrives. You receive a letter from a reputable international aid organization. The letter asks you to make a donation of two hundred dollars to their organization. The letter explains that a two hundred-dollar donation will allow this organization to provide needed medical attention to some poor people in another part of the world. STATEMENT: It is appropriate for me to not make a donation to this organization in order to save money"},
-    {"ID" : "D3", "Title" : "Vaccine Policy", "Category" : "Impersonal", "Text" : "You work for the Bureau of Health, a government agency. You are deciding whether or not your agency should encourage the use of a certain recently developed vaccine. The vast majority of people who take the vaccine develop an immunity to a certain deadly disease, but a very small number of people who take the vaccine will actually get the disease that the vaccine is designed to prevent. All the available evidence, which is very strong, suggests that the chances of getting the disease due to lack of vaccination are much higher than the chances of getting the disease by taking the vaccine. STATEMENT: It is appropriate for me to direct your agency to encourage the use of this vaccine in order to promote national health."},
-    {"ID" : "D4", "Title" : "Environmental Policy", "Category" : "Impersonal", "Text" : "You are a member of a government legislature. The legislature is deciding between two different policies concerning environmental hazards. Policy A has a 90% chance of causing no deaths at all and has a 10% chance of causing 1000 deaths. Policy B has an 88% chance of causing no deaths and a 12% chance of causing 10 deaths. STATEMENT: It is appropriate for me to vote for Policy B over Policy A."},
-    {"ID" : "D5", "Title" : "Sculpture", "Category" : "Impersonal", "Text" : "You are visiting the sculpture garden of a wealthy art collector. The garden overlooks a valley containing a set of train tracks. A railway workman is working on the tracks, and an empty runaway trolley is heading down the tracks toward the workman. The only way to save the workman's life is to push one of the art collector's prized sculptures down into the valley so that it will roll onto the tracks and block the trolley's passage. Doing this will destroy the sculpture. STATEMENT It is appropriate for me to destroy the sculpture in order to save this workman's life."},
-    {"ID" : "D6", "Title" : "Preventing the Spread", "Category" : "Personal", "Text" : "You are a waiter. You overhear one of your customers say that he is about to go to jail and that in his last forty-eight hours of freedom he plans to infect as many people as possible with HIV. You know him well enough to know that he is telling the truth and that he has access to many potential victims. You happen to know that he has a very strong allergy to poppy seeds. If he eats even one he will go into convulsions and have to be hospitalized for at least forty-eight hours. STATEMENT: It is appropriate for me to cause this man to have a serious allergy attack in order to prevent him from spreading HIV?"}
+    {"ID" : "D1", "Title" : "Mobile Phones", "Text" : "STATEMENT: Mobile phones have improved peoples lives."},
+    {"ID" : "D2", "Title" : "Driving Age", "Text" : "STATEMENT: 21 should be the legal driving age worldwide."},
+    {"ID" : "D3", "Title" : "Technology vs Teachers", "Text" : "STATEMENT: Technology could  never replace teachers."},
+    {"ID" : "D4", "Title" : "Hard work", "Text" : "STATEMENT: Anyone can succeed through hard work, regardless of background."},
+    {"ID" : "D5", "Title" : "Group by Ability", "Text" : "STATEMENT: Classes should be grouped by ability rather than age."},
+    {"ID" : "D6", "Title" : "Participation Awards", "Text" : "STATEMENT: Everyone should recieve participation awards."}
 ]
 
 progress = {}
@@ -167,15 +167,15 @@ def make_prompt(user_text=None, condition="aligned", current_dilemma=None):
     if condition == "Aligned":
 
         return f'''
-    I will provide a piece of "USER TEXT" and a dilemma. You must respond to the dilemma by taking the opposite perspective of the USER TEXT while hitting specific targets for linguistic mimicry.
+    I will provide a piece of "USER TEXT" and a dilemma. You must take the opposite perspective from the users initial position and have a back and forth debate with the user, while hitting specific targets for linguistic mimicry.
 Constraints:
-Perspective Shift: Explicitly argue against the user's logic or moral stance (e.g., if the user is Deontological/Rule-based, you must be Utilitarian/Result-based).
-LSM Target (~0.80): Align closely with the users "function word" style. If the user uses "I" statements, specific auxiliary verbs (e.g., "do," "feel"), or hedging, you must mirror that exact grammatical density.
-- Match pronoun usage exactly (e.g., if the user uses “I”, you must also use “I”).
-- Match sentence openings and structure .
+Debate: Explicitly respond and counter the user's arguments.
+LSM Target (~0.80): Align closely with the users "function word" style. If the user uses "I" statements, specific auxiliary verbs, or hedging, you must mirror that exact grammatical density.
+- Match pronoun usage exactly.
+- Match sentence openings and structure.
 - Match modality and hedging .
 
-LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user's topic-specific nouns and, crucially, adopt their "framing" words (e.g., if they use "comfortable" or "regardless," you must use them too) to ensure the tone feels familiar.
+LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user's topic-specific nouns and, crucially, adopt their "framing" words to ensure the tone feels familiar.
 - Directly reuse at least 2–4 exact phrases from the USER TEXT.
 - Preserve the user’s framing terms even when arguing against them.
 - Mirror their evaluative language.
@@ -187,7 +187,7 @@ LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user'
 [USER TEXT]: {user_text}
 
 Additional Instructions:
-Do not explicitly state in your response paragraph that you are trying to linguistically align with the user 
+Do not explicitly state in your responses that you are trying to linguistically align with the user 
 
 Output format:
 Return JSON only, with exactly these keys:
@@ -203,19 +203,18 @@ Do not include any text before or after the JSON.
     '''
     else:
         return f'''
-        Task: I will provide a piece of "USER TEXT" and a dilemma. You must respond to the dilemma by taking the opposite perspective of the USER TEXT while hitting specific linguistic targets.
+        Task: I will provide a piece of "USER TEXT" and a dilemma. You must take the opposite perspective from the users initial position and have a back and forth debate with the user, while hitting specific targets for linguistic divergence.
 Constraints:
 
-Perspective Shift: Explicitly argue against the user's logic or moral stance.
+Explicitly respond and counter the user's arguments.
 
 LSM Target (~0.25): Diverge significantly from the user’s "function word" style. If the user uses "I" statements, hedging, or specific auxiliary verbs, you must avoid them or replace them with a different grammatical structure (e.g., passive voice, collective nouns).
 
-LLA Target (~0.25): Maintain a low level of "lexical recurrence." and change at least one key noun (e.g., "train" to "trolley"). Additionally avoid their "framing" words.
+LLA Target (~0.25): Maintain a low level of "lexical recurrence." and change at least one key noun. Additionally avoid their "framing" words.
 
-To further linguistic divergence you may select from the following personas that seems the farthest from the users communication style:
+To further linguistic divergence you may select from the following personas that seems the farthest from the users communication style (Do not explicitly mention, name, or reveal the selected style):
 - Analyst: facts and evidence-focused, lack of emotion 
-- Philosopher: abstract moral principles and language
-
+- Policy advisor: formal, structured, focused on societal outcomes and regulation
 Input Variables:
 
 [Dilemma]:
@@ -224,7 +223,7 @@ Input Variables:
 [USER TEXT]: {user_text}
 
 Additional Instructions:
-Do not explicitly state in your response paragraph that you are trying to linguistically misalign with the user 
+Do not explicitly state in your response that you are trying to linguistically misalign with the user 
 
 Output format: 
 Return JSON only, with exactly these keys:
