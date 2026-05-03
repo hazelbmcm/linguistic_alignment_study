@@ -34,7 +34,10 @@ def init_db():
         condition TEXT,
         dilemma_text TEXT,
         initial_rating INTEGER,
-        final_rating INTEGER
+        final_rating INTEGER,
+        user_stance TEXT,
+        ai_stance TEXT
+
     )
     """)
 
@@ -163,12 +166,24 @@ def get_nth_question(PID, n):
         "Text" : target_text
     }
 
-def make_prompt(user_text=None, condition="aligned", current_dilemma=None):
+def make_prompt(user_text=None, condition="aligned", current_dilemma=None, user_stance=None, ai_stance=None):
     if condition == "Aligned":
 
         return f'''
     I will provide a piece of "USER TEXT" and a dilemma. You must take the opposite perspective from the users initial position and have a back and forth debate with the user, while hitting specific targets for linguistic mimicry.
+The statement is: {current_dilemma}
+
 Constraints:
+
+Stance:
+The participant's initial stance is: {user_stance}.
+Your assigned stance is: {ai_stance}.
+You must maintain your assigned stance throughout the entire debate.
+If your assigned stance is AGREE, argue in favor of the statement.
+If your assigned stance is DISAGREE, argue against the statement.
+Do not switch sides.
+Do not say that you agree with the participant unless your assigned stance allows it.
+
 Debate: Explicitly respond and counter the user's arguments.
 LSM Target (~0.80): Align closely with the users "function word" style. If the user uses "I" statements, specific auxiliary verbs, or hedging, you must mirror that exact grammatical density.
 - Match pronoun usage exactly.
@@ -181,7 +196,7 @@ LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user'
 - Mirror their evaluative language.
 - Mirror sentence structure
 - Prefer minimal paraphrasing—copy exact wording where possible.
-
+Input variables:
 [Dilemma]: Question: {current_dilemma}
 
 [USER TEXT]: {user_text}
@@ -204,9 +219,20 @@ Do not include any text before or after the JSON.
     else:
         return f'''
         Task: I will provide a piece of "USER TEXT" and a dilemma. You must take the opposite perspective from the users initial position and have a back and forth debate with the user, while hitting specific targets for linguistic divergence.
+The statement is: {current_dilemma}
 Constraints:
 
 Explicitly respond and counter the user's arguments.
+
+Stance:
+The participant's initial stance is: {user_stance}.
+Your assigned stance is: {ai_stance}.
+You must maintain your assigned stance throughout the entire debate.
+If your assigned stance is AGREE, argue in favor of the statement.
+If your assigned stance is DISAGREE, argue against the statement.
+If your assigned stance is CHALLENGE, argue against the users arguments
+Do not switch sides.
+Do not say that you agree with the participant unless your assigned stance allows it.
 
 LSM Target (~0.25): Diverge significantly from the user’s "function word" style. If the user uses "I" statements, hedging, or specific auxiliary verbs, you must avoid them or replace them with a different grammatical structure (e.g., passive voice, collective nouns).
 
@@ -215,8 +241,8 @@ LLA Target (~0.25): Maintain a low level of "lexical recurrence." and change at 
 To further linguistic divergence you may select from the following personas that seems the farthest from the users communication style (Do not explicitly mention, name, or reveal the selected style):
 - Analyst: facts and evidence-focused, lack of emotion 
 - Policy advisor: formal, structured, focused on societal outcomes and regulation
-Input Variables:
 
+Input Variables:
 [Dilemma]:
  {current_dilemma}
 
@@ -260,16 +286,16 @@ def save_record(record: dict) -> None:
     with open(RESPONSES_PATH, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-def create_conversation_entry(participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, user_text, ai_reply):
+def create_conversation_entry(participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, user_text, ai_reply, user_stance, ai_stance):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     #session row
     cursor.execute("""
     INSERT INTO question_sessions (
-        participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating
-    ) VALUES (?, ?, ?, ?, ?, ?)
-    """, (participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating))
+        participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, user_stance, ai_stance
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, user_stance, ai_stance))
     
     #first message
     cursor.execute("""
@@ -290,7 +316,7 @@ def get_question_session(participant_id, question_index):
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, final_rating
+    SELECT participant_id, question_index, dilemma_id, condition, dilemma_text, initial_rating, final_rating, user_stance, ai_stance
     FROM question_sessions
     WHERE participant_id = ? AND question_index = ?
     """, (participant_id, question_index))
@@ -309,6 +335,8 @@ def get_question_session(participant_id, question_index):
         "dilemma_text": row[4],
         "initial_rating": row[5],
         "final_rating": row[6],
+        "user_stance": row[7],
+        "ai_stance" : row[8]
     }
 
 def get_conversation_history(participant_id, question_index):
@@ -360,6 +388,14 @@ def save_final_rating(participant_id, question_index, final_rating):
     conn.commit()
     conn.close()
 
+def get_stances(initial_rating):
+    if initial_rating > 50:
+        return "AGREE", "DISAGREE"
+    elif initial_rating < 50:
+        return "DISAGREE", "AGREE"
+    else:
+        return "NEUTRAL", "CHALLENGE"
+
 @app.get("/")
 def root():
     return FileResponse("static/index.html")
@@ -398,8 +434,9 @@ def submit_answer(req: FirstResponse):
     question_condition = get_nth_question(req.participant_id, req.question_index)
     condition = question_condition["Condition"]
     current_dilemma = question_condition["Text"]
+    user_stance, ai_stance = get_stances(req.initial_rating)
     
-    prompt = make_prompt(req.user_text, condition, current_dilemma)
+    prompt = make_prompt(req.user_text, condition, current_dilemma, user_stance, ai_stance)
 
     response = client.chat.completions.create(
         model=MODEL_NAME,
@@ -423,13 +460,15 @@ def submit_answer(req: FirstResponse):
         "initial_rating": req.initial_rating,
         "user_text": req.user_text,
         "ai_reply": ai_reply,
+        "user_stance": user_stance,
+        "ai_stance": ai_stance,
         "validation_table" : validation_table,
         "lla_breakdown": lla_breakdown
     }
 
     save_record(record)
 
-    create_conversation_entry(req.participant_id, req.question_index, question_condition["ID"], condition, current_dilemma, req.initial_rating, req.user_text, ai_reply)
+    create_conversation_entry(req.participant_id, req.question_index, question_condition["ID"], condition, current_dilemma, req.initial_rating, req.user_text, ai_reply, user_stance, ai_stance)
 
     return {
         
@@ -444,7 +483,7 @@ def continue_conversation(req: FollowingResponses):
     messages = get_conversation_history(req.participant_id, req.question_index)
     history = format_history(messages)
 
-    prompt = make_prompt(req.user_text, data["condition"], data["dilemma_text"]) + f"""
+    prompt = make_prompt(req.user_text, data["condition"], data["dilemma_text"], data["user_stance"], data["ai_stance"]) + f"""
     Conversation so far: {history}
     Instructions:
         - Use the conversation history for context and linguistic alignment/misalignment

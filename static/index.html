@@ -35,6 +35,13 @@
         let currentCondition = null
         let questionSummary = []
         let question_title = null
+        let debateTimeLeft = 300
+        let debateTimer = null
+        let debateExpired = false
+        let debateTurnCount = 1
+        let debateMinTurns = 3
+        let userStance = null
+        let aiStance = null
 
         function render(){
             const app = document.getElementById("app")
@@ -122,7 +129,9 @@
                     Debate with AI Agent
                     ${currentCondition === "Aligned" ? "Star⭐" : "Sun ☀️"}
                 </h3>
-
+                
+                <p><strong>Time remaining:</strong> <span id="timer">5:00</span></p>
+                <p><strong>Turns completed:</strong> <span id="turnCounter">${debateTurnCount}</span> / ${debateMinTurns}</p>
                 <div class="mb-3 p-3 bg-light rounded">
                 <p><strong>User said:</strong><br> 
                     ${user_text}</p>
@@ -135,10 +144,30 @@
                 <p><strong>respond here:</strong></p>
                 <textarea id="userResponse" class="form-control mb-3" rows="3""></textarea>
                 
-                <button id="respondBtn" class="btn btn-outline-primary" onclick="continueConversation()">respond</button>
-                <button class="btn btn-outline-danger" onclick="endConversation()">End conversation</button> 
+                <button id="respondBtn" class="btn btn-outline-primary" onclick="continueConversation()">Respond</button>
+                <button id="endBtn" class="btn btn-outline-danger" onclick="endConversation()" disabled>End conversation</button> 
             </div>
                `
+            setTimeout(() => {
+                const endBtn = document.getElementById("endBtn")
+                const respondBtn = document.getElementById("respondBtn")
+
+                if (debateExpired) {
+                    if (respondBtn) respondBtn.disabled = true
+                    if (endBtn) endBtn.disabled = false
+                } else {
+                    if (respondBtn) respondBtn.disabled = false
+
+                    if (debateTurnCount >= debateMinTurns) {
+                        if (endBtn) endBtn.disabled = false
+                    } else{
+                        if (endBtn) endBtn.disabled = true
+                    }
+                    
+                    startDebateTimer()
+                }
+            }, 0)
+
             }
             else if (state === "end") {
                 setTimeout(() => {
@@ -251,10 +280,19 @@
             
             const rating = parseInt(document.getElementById("ratingSlider").value)
             const userText = document.getElementById("userText").value
-            
             user_text = userText
-            
             let words
+
+            if (rating > 50) {
+                userStance= "AGREE"
+                aiStance= "DISAGREE"
+            } else if (rating < 50) {
+                userStance = "DISAGREE"
+                aiStance = "AGREE"
+            } else {
+                userStance = "NEUTRAL"
+                aiStance = "CHALLENGE"
+            }
 
             if (userText.trim() === "") {
                 words = 0
@@ -277,7 +315,9 @@
                         participant_id: participantID,
                         question_index: currentQuestionIndex,
                         initial_rating: rating,
-                        user_text: userText
+                        user_text: userText,
+                        user_stance: userStance,
+                        ai_stance: aiStance
                     })
             })
             .then(res => res.json())
@@ -299,6 +339,8 @@
             respondBtn.disabled = true
             const user_response = document.getElementById("userResponse").value
             user_text = user_response
+            debateTurnCount++
+
 
             if (user_response.trim() === "") {
                 alert("Please enter a response.")
@@ -314,8 +356,9 @@
                 body: JSON.stringify({
                     participant_id: participantID,
                     question_index: currentQuestionIndex,
-                    user_text: user_response
-
+                    user_text: user_response,
+                    user_stance: userStance,
+                    ai_stance: aiStance
                 })
             })
             .then(res => res.json())
@@ -371,6 +414,16 @@
                     user_text = null
                     aiResponse = null
                     state = "question"
+                    debateTimeLeft = 300
+                    debateExpired = false
+                    debateTurnCount = 1
+                    userStance = null
+                    aiStance = null
+
+                    if (debateTimer !== null) {
+                        clearInterval(debateTimer)
+                        debateTimer = null
+                    }
                 }
 
                 render()
@@ -391,6 +444,35 @@
             currentCondition = null
             participantID = null
             render()
+        }
+
+        function startDebateTimer() {
+            if (debateTimer !== null) {
+                clearInterval(debateTimer)
+            }
+
+            debateTimer = setInterval(() => {
+                debateTimeLeft--
+
+                const minutes = Math.floor(debateTimeLeft / 60)
+                const seconds = debateTimeLeft % 60
+
+                const timerElement = document.getElementById("timer")
+                if (timerElement) {
+                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`
+                }
+                if (debateTimeLeft <= 0) {
+                    clearInterval(debateTimer)
+                    debateTimer = null
+                    debateExpired = true
+
+                    const respondBtn = document.getElementById("respondBtn")
+                    const endBtn = document.getElementById("endBtn")
+
+                    if (respondBtn) respondBtn.disabled = true
+                    if (endBtn) endBtn.disabled = false
+                }
+            }, 1000)
         }
 
 
