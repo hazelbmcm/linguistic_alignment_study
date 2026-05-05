@@ -71,9 +71,9 @@
             else if (state === "instructions") {
                 app.innerHTML = `
                     <h3 class="mb-3">Experiment Instructions</h3>
-                    <p>In this experiment you will be asked to respond to 6 moral dilemmas. After reading each dilemma you will provide your initial reaction on a five point scale (strongly disagree, disagree, neutral, agree, strongly agree), and a short justification.</p>
-                    <p>After your initial decision you will converse with an AI moral advisor who will respond to your justification and help you consider other perspectives. The two AI advisors you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Sun</strong>☀️. Keep a mental note of who you are conversing with, as you will be asked questions about your experience with both AI’s after the experiment.</p>
-                    <p>At any point in the conversation, you can choose to either respond to the AI’s statement or end the conversation. When  you choose to end the conversation, you will be asked to provide a final rating on the same five point scale, indicating how much you agree or disagree with the provided statement. This process repeats for all questions.</p>
+                    <p>In this experiment you will be asked to respond to 6 debate statements. After reading each statement you will rate your initial agreement/disagreement on a scale from 0 - 100 , and provide a short justification.</p>
+                    <p>After your initial response, you will have five minutes to debate the statement with an AI agent. You may choose to end the conversation after three subsequent turns. The two AI agents you will interact with during the experiment are <strong>Star</strong> ⭐ and <strong>Sun</strong> ☀️. Keep a mental note of who you are debating with, as you will be asked questions about your experience with both agents at the end of the experiment.</p>
+                    <p>After the timer runs out or when you choose to end the conversation, you will be asked to provide a final rating on the same scale, indicating how much you agree or disagree with the provided statement. This process repeats for all questions.</p>
                     <br><br>
                     <button class="btn btn-primary" onclick="question()">continue</button>
                 `
