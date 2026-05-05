@@ -485,12 +485,18 @@ def continue_conversation(req: FollowingResponses):
     messages = get_conversation_history(req.participant_id, req.question_index)
     history = format_history(messages)
 
-    prompt = make_prompt(req.user_text, data["condition"], data["dilemma_text"], data["user_stance"], data["ai_stance"]) + f"""
-    Conversation so far: {history}
-    Instructions:
-        - Use the conversation history for context and linguistic alignment/misalignment
-        - Respond ONLY to the most recent user message
-    """
+    prompt = f"""
+    Conversation so far:
+    {history}
+
+    Most recent user message:
+    {req.user_text}
+
+    Use the conversation history for context and linguistic alignment/misalignment
+    Now respond ONLY to the most recent user message above
+    
+     """ + make_prompt(req.user_text, data["condition"], data["dilemma_text"], data["user_stance"], data["ai_stance"]) 
+    
     
     response = client.chat.completions.create(
         model=MODEL_NAME,

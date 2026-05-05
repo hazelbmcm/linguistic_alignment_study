@@ -339,14 +339,14 @@
             respondBtn.disabled = true
             const user_response = document.getElementById("userResponse").value
             user_text = user_response
-            debateTurnCount++
-
 
             if (user_response.trim() === "") {
                 alert("Please enter a response.")
                 respondBtn.disabled = false
                 return
             }
+
+            debateTurnCount++
 
             fetch("/continue-conversation", {
                 method: "POST",
