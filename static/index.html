@@ -42,6 +42,7 @@
         let debateMinTurns = 3
         let userStance = null
         let aiStance = null
+        let words = 0
 
         function render(){
             const app = document.getElementById("app")
@@ -84,11 +85,26 @@
                     const slider = document.getElementById("ratingSlider")
                     const output = document.getElementById("ratingValue")
 
-                    output.textContent = this.value
+                    output.textContent = slider.value
 
                     slider.oninput = function () {
                         output.textContent = this.value
                     }
+
+                    const textArea = document.getElementById("userText")
+                    const wordDisplay = document.getElementById("wordCount")
+
+                    textArea.addEventListener("input", () => {
+                        const text = textArea.value.trim()
+
+                        if (text === "") {
+                            words = 0
+                        } else {
+                            words = text.split(/\s+/).length
+                        }
+
+                        wordDisplay.textContent = words
+                    })
                 }, 0)
 
                 app.innerHTML = `
@@ -115,6 +131,7 @@
                         <li>What factors influenced your decision the most</li>
                     </ul>
                     <textarea id="userText" class=form-control mb-3 rows="4"></textarea>
+                    <p><strong>Words:</strong> <span id="wordCount">0</span> / 30 minimum required</p>
                     <br>
                     <button class="btn btn-success" id="submitBtn" onclick="submitAnswer()">Submit</button>
                     </div>
@@ -281,7 +298,6 @@
             const rating = parseInt(document.getElementById("ratingSlider").value)
             const userText = document.getElementById("userText").value
             user_text = userText
-            let words
 
             if (rating > 50) {
                 userStance= "AGREE"
