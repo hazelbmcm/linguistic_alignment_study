@@ -140,30 +140,50 @@
             
             }
             else if (state === "response") {
+
+                let responseSection
+
+                if (debateExpired) {
+                    responseSection = `
+                        <div class="alert alert-warning">
+                            <strong>Time is up!</strong> Please end the conversation and continue.
+                        </div>  
+                        
+                        <button id = "endBtn" class="btn btn-outline-danger" onclick="endConversation()">
+                            End conversation
+                        </button>
+                    `
+                } else {
+                    responseSection = `
+                        <p><strong>respond here:</strong></p>
+                        <textarea id="userResponse" class="form-control mb-3" rows="3""></textarea>
+                
+                        <button id="respondBtn" class="btn btn-outline-primary" onclick="continueConversation()">Respond</button>
+                        <button id="endBtn" class="btn btn-outline-danger" onclick="endConversation()" disabled>End conversation</button> 
+                    `
+                }
+
                app.innerHTML = `
                <div class="card p-4 shadow-sm">
-                <h3 class="mb-4">
-                    Debate with AI Agent
-                    ${currentCondition === "Aligned" ? "Star⭐" : "Sun ☀️"}
-                </h3>
+                    <h3 class="mb-4">
+                        Debate with AI Agent
+                        ${currentCondition === "Aligned" ? "Star⭐" : "Sun ☀️"}
+                    </h3>
                 
-                <p><strong>Time remaining:</strong> <span id="timer">5:00</span></p>
-                <p><strong>Turns completed:</strong> <span id="turnCounter">${debateTurnCount}</span> / ${debateMinTurns}</p>
-                <div class="mb-3 p-3 bg-light rounded">
-                <p><strong>User said:</strong><br> 
-                    ${user_text}</p>
-                </div>
+                    <p><strong>Time remaining:</strong> <span id="timer">5:00</span></p>
+                    <p><strong>Turns completed:</strong> <span id="turnCounter">${debateTurnCount}</span> / ${debateMinTurns}</p>
+                    
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <p><strong>User said:</strong><br> 
+                            ${user_text}</p>
+                    </div>
                 
-                <div class="mb-3 p-3 bg-secondary text-white rounded">
-                <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Sun ☀️"} said: </strong>${aiResponse}</p>
-                </div>
-
-                <p><strong>respond here:</strong></p>
-                <textarea id="userResponse" class="form-control mb-3" rows="3""></textarea>
+                    <div class="mb-3 p-3 bg-secondary text-white rounded">
+                        <p><strong>${currentCondition === "Aligned" ? "Star ⭐" : "Sun ☀️"} said: </strong>${aiResponse}</p>
+                    </div>
                 
-                <button id="respondBtn" class="btn btn-outline-primary" onclick="continueConversation()">Respond</button>
-                <button id="endBtn" class="btn btn-outline-danger" onclick="endConversation()" disabled>End conversation</button> 
-            </div>
+                    ${responseSection}
+                </div>    
                `
             setTimeout(() => {
                 const endBtn = document.getElementById("endBtn")
@@ -485,8 +505,7 @@
                     const respondBtn = document.getElementById("respondBtn")
                     const endBtn = document.getElementById("endBtn")
 
-                    if (respondBtn) respondBtn.disabled = true
-                    if (endBtn) endBtn.disabled = false
+                    render()
                 }
             }, 1000)
         }
