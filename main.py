@@ -191,8 +191,8 @@ LSM Target (~0.80): Align closely with the users "function word" style. If the u
 - Match modality and hedging .
 
 LLA Target (~0.80): Maintain a high level of "lexical recurrence." Use the user's topic-specific nouns and, crucially, adopt their "framing" words to ensure the tone feels familiar.
-- LLA of 0.80 means 80 percent of a users words should be reused in the response
-- Directly reuse at least 2–4 exact phrases from the USER TEXT.
+- LLA of 0.80 means 70 - 80 percent of a users words should be reused in the response
+- Directly reuse at least 2–4 exact phrases from the USER TEXT, but do not repeat a whole or almost whole sentence.
 - Preserve the user’s framing terms even when arguing against them.
 - Mirror their evaluative language.
 - Mirror sentence structure
