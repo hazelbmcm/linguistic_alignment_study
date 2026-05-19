@@ -36,8 +36,8 @@ def init_db():
         initial_rating INTEGER,
         final_rating INTEGER,
         user_stance TEXT,
-        ai_stance TEXT
-
+        ai_stance TEXT,
+        timer_expired INTEGER DEFAULT 0
     )
     """)
 
@@ -280,6 +280,7 @@ class EndConversation(BaseModel):
     participant_id: str
     question_index: int
     final_rating: int
+    timer_expired: bool = False
 
 
 def save_record(record: dict) -> None:
@@ -378,15 +379,15 @@ def add_message(participant_id, question_index, role, content):
     conn.commit()
     conn.close()
 
-def save_final_rating(participant_id, question_index, final_rating):
+def save_final_rating(participant_id, question_index, final_rating, timer_expired=False):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
     UPDATE question_sessions
-    SET final_rating = ?
+    SET final_rating = ?, timer_expired = ?
     WHERE participant_id = ? AND question_index = ?
-    """, (final_rating, participant_id, question_index))
+    """, (final_rating, int(timer_expired), participant_id, question_index))
 
     conn.commit()
     conn.close()
@@ -524,7 +525,7 @@ def continue_conversation(req: FollowingResponses):
 
 @app.post("/end-conversation")
 def end_conversation(req: EndConversation):
-    save_final_rating(req.participant_id, req.question_index, req.final_rating)
+    save_final_rating(req.participant_id, req.question_index, req.final_rating, req.timer_expired)
     
     next_question_index = req.question_index + 1
     progress[req.participant_id] = next_question_index
