@@ -19,7 +19,6 @@ from fastapi.responses import FileResponse
 load_dotenv()
 
 DB_PATH = os.getenv("DB_PATH", "experiment.db")
-print(f"DB_PATH is: {DB_PATH}")
 EXPORT_KEY = os.getenv("EXPORT_KEY")
 RESPONSES_PATH = os.getenv("RESPONSES_PATH", "data/responses.jsonl")
 
