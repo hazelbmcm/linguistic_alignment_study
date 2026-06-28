@@ -3,6 +3,9 @@
 ## Overview
 This is a web-based system developed to host a study on linguistic alignment and misalignment in a debate context. The study aims to investigate the influence of linguistic (mis)alignment on trust and persuasion.
 
+## Demo
+To try the experiment system without setup: https://linguistic-alignment-study.onrender.com
+
 ## Procedure
 Participants complete the following steps
 - Pre-experiment survey to capture demographics and background variables
@@ -36,3 +39,4 @@ Visit
 ```
 http://127.0.0.1:8000
 ```
+
